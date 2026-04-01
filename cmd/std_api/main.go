@@ -13,6 +13,7 @@ import (
 
 	"github.com/ghost/restAPI/internal/config"
 	"github.com/ghost/restAPI/internal/http/handlers/student"
+	"github.com/ghost/restAPI/internal/storage/sqlite"
 )
 
 func main() {
@@ -20,6 +21,11 @@ func main() {
 	cfg := config.MustLoad()
 	//set up the logger through the package
 	//database setup
+	storage ,err := sqlite.New(cfg)
+	if err!=nil{
+		log.Fatal(err)
+	}
+	slog.Info("storage not initialised",slog.String("env",cfg.Env),slog.String("version","1.0.0"))
 	//setup router
 	router := http.NewServeMux()
 	router.HandleFunc("POST /api/students",student.New())
@@ -51,9 +57,9 @@ func main() {
 	//we can do server.Shutdown(), 'but IRL sometimes it does not cause the real shutdown of the server annd the port remains blocked, so we use a timer such that if the server does not shutdown within that time report it 
 	ctx,cancel:=context.WithTimeout(context.Background(),5*time.Second)
 	defer cancel()
-	err := server.Shutdown(ctx)
-	if err!=nil{
-		slog.Error("failed to shutdoen the server",slog.String("error",err.Error()))
+	err1 := server.Shutdown(ctx)
+	if err1!=nil{
+		slog.Error("failed to shutdoen the server",slog.String("error",err1.Error()))
 	}
 	//the other way is 
 	//if err:=server.Shutdown(ctx);  err!=nil{ 
